@@ -12,13 +12,15 @@ export async function get_game_data(MATCH_ID, key) {
     timeline = await timeline.json();
 
     // Create internal state
-    const initial_state = await create_initial_state(timeline.info.participants, game, key);
-    console.log(JSON.stringify(initial_state));
+    const state = await create_initial_state(timeline.info.participants, game, key);
 
-    // For each frame in timeline:
-    //      - Update state using all events leading up to this point
-    //      - Parse internal state and append static state to list of states
-    // Return list of states
+    const states = [];
+    for (const frame of timeline.info.frames) {
+        update_with_frame(state, frame);
+        parsed_state = parse_state(state);
+        states.push(parsed_state);
+    }
+    return states;
 }
 
 async function create_initial_state(participants, game, key) {
@@ -80,4 +82,18 @@ async function get_summoner_level(participants, playerIndex, key) {
     let summonerData = await api_call(`https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}?api_key=${key}`);
     summonerData = await summonerData.json();
     return summonerData.summonerLevel;
+}
+
+function update_with_frame(state, frame) {
+    for (const event in frame.events) {
+        update_with_event(state, event);
+    }
+}
+
+function update_with_event(state, event) {
+    switch(event.type) {
+        case 'ITEM_PURCHASED':
+
+        break;
+    }
 }
