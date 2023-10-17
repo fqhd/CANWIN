@@ -87,13 +87,23 @@ async function get_summoner_level(participants, playerIndex, key) {
 function update_with_frame(state, frame) {
     for (const event in frame.events) {
         update_with_event(state, event);
+        
     }
 }
 
 function update_with_event(state, event) {
     switch(event.type) {
-        case 'ITEM_PURCHASED':
-
+        case 'CHAMPION_KILL':
+            process_champion_kill(state, event);
         break;
     }
+}
+
+function process_champion_kill(state, event) {
+    const teamId = parseInt((event.killerId - 1) / 5);
+    if(event.killerId > 0) {
+        state.teams[teamId].players[(event.killerId - 1) % 5].kills += 1;
+    }
+    const victimTeamId = parseInt((event.victimId - 1) / 5);
+    this.state.teams 
 }
