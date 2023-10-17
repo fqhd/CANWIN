@@ -1,13 +1,19 @@
-// MATCH_ID: EUW1_6623848520
 import { api_call } from "./utils.js";
+import fs from 'fs';
+
+let champion_data = fs.readFileSync('champion.json');
+champion_data = JSON.parse(champion_data);
 
 export async function get_game_data(MATCH_ID, key) {
-    // Get the timeline
+    // Get game and timeline data
+    let game = await api_call(`https://europe.api.riotgames.com/lol/match/v5/matches/${MATCH_ID}?api_key=${key}`);
+    game = await game.json();
     let timeline = await api_call(`https://europe.api.riotgames.com/lol/match/v5/matches/${MATCH_ID}/timeline?api_key=${key}`);
     timeline = await timeline.json();
 
     // Create internal state
-    const internal_state = await create_initial_state(timeline.info.participants, key);
+    const initial_state = await create_initial_state(timeline.info.participants, game, key);
+    console.log(JSON.stringify(initial_state));
 
     // For each frame in timeline:
     //      - Update state using all events leading up to this point
@@ -15,11 +21,11 @@ export async function get_game_data(MATCH_ID, key) {
     // Return list of states
 }
 
-async function create_initial_state(participants, key) {
+async function create_initial_state(participants, game, key) {
     const state = {
         teams: [],
         time: 0,
-        win: match.info.participants[0].win,
+        win: game.info.participants[0].win,
     };
     for (let i = 0; i < 2; i++) {
         const team = {
@@ -33,8 +39,8 @@ async function create_initial_state(participants, key) {
         };
         for (let j = 0; j < 5; j++) {
             const playerIndex = i * 5 + j;
-            const champion = match.info.participants[playerIndex].championName;
-            const mastery = await get_champion_mastery(participants, playerIndex, champion, key);
+            const champion = game.info.participants[playerIndex].championName;
+            const mastery = await get_champion_mastery(participants, champion, playerIndex, key);
             const summonerLevel = await get_summoner_level(participants, playerIndex, key);
             team.players.push({
                 champion: champion,
@@ -47,7 +53,7 @@ async function create_initial_state(participants, key) {
                 assists: 0,
                 baronTimer: 0,
                 elderTimer: 0,
-                respawnTimer: 0.1,
+                respawnTimer: 0.0,
                 summonerLevel: summonerLevel,
                 level: 1,
                 creepscore: 0,
@@ -58,14 +64,22 @@ async function create_initial_state(participants, key) {
     return state;
 }
 
-async function get_champion_mastery(participants, playerIndex, champion) {
+async function get_champion_mastery(participants, champion, playerIndex, key) {
     const puuid = participants[playerIndex].puuid;
-    // Get ID of champion
-    // Query champion mastery level and points
-    // Return an object that contains this information
+    console.log(champion);
+    const champion_id = champion_data.data[champion].key;
+    let mastery = await api_call(`https://euw1.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-puuid/${puuid}/by-champion/${champion_id}?api_key=${key}`);
+    mastery = await mastery.json();
+    return {
+        points: mastery.championPoints,
+        level: mastery.championLevel,
+        lastPlayTime: mastery.lastPlayTime
+    }
 }
 
-async function get_summoner_level(participants, playerIndex) {
+async function get_summoner_level(participants, playerIndex, key) {
     const puuid = participants[playerIndex].puuid;
-
+    let summonerData = await api_call(`https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}?api_key=${key}`);
+    summonerData = await summonerData.json();
+    return summonerData.summonerLevel;
 }
