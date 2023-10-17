@@ -87,7 +87,7 @@ async function get_summoner_level(participants, playerIndex, key) {
 function update_with_frame(state, frame) {
     for (const event in frame.events) {
         update_with_event(state, event);
-        
+
     }
 }
 
@@ -100,10 +100,42 @@ function update_with_event(state, event) {
 }
 
 function process_champion_kill(state, event) {
+    const time = event.timestamp / 1000 / 60;
     const teamId = parseInt((event.killerId - 1) / 5);
     if(event.killerId > 0) {
         state.teams[teamId].players[(event.killerId - 1) % 5].kills += 1;
     }
     const victimTeamId = parseInt((event.victimId - 1) / 5);
-    this.state.teams 
+    const victim = state.teams[victimTeamId].players[(event.victim - 1) % 5];
+    victim.deaths += 1;
+    victim.baronTimer = 0;
+    victim.elderTimer = 0;
+    victim.deathTimer = calc_death_timer(victim.level, time);
+    if (event.assistingParticipantIds) {
+        for (const assistId of event.assistingParticipantIds) {
+            const assistTeamId = parseInt((assistId - 1) / 5);
+            state.teams[assistTeamId].players[(assistId - 1) % 5].assists += 1;
+        }
+    }
+}
+
+export function calc_death_timer(level, time) {
+    const BRW = [6, 6, 8, 8, 10, 12, 16, 21, 26, 32.5, 35, 37.5, 40, 42.5, 45, 47.5, 50, 52.5];
+    const current_brw = BRW[level - 1];
+    const current_tif = calc_tif(time) / 100;
+    return current_brw + current_brw * current_tif;
+}
+
+export function calc_tif(time) {
+    if(time >= 0 && time < 15) {
+        return 0;
+    }else if(time >= 15 && time < 30) {
+        return Math.ceil(2 * (time - 15)) * 0.425;
+    }else if(time >= 30 && time < 45) {
+        return 12.75 + Math.ceil(2 * (time - 30)) * 0.3;
+    }else if(time >= 45 && time < 55){
+        return 21.75 + Math.ceil(2 * (time - 45)) * 1.45;
+    }else{
+        return 50;
+    }
 }
