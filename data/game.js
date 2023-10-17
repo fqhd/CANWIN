@@ -44,9 +44,8 @@ async function create_initial_state(participants, game, key) {
             const summonerLevel = await get_summoner_level(participants, playerIndex, key);
             team.players.push({
                 champion: champion,
-                masteryPonits: mastery.points,
+                masteryPoints: mastery.points,
                 masteryLevel: mastery.level,
-                lastPlayTime: mastery.lastPlayTime,
                 smurf: summonerLevel < 40,
                 kills: 0,
                 deaths: 0,
@@ -73,7 +72,6 @@ async function get_champion_mastery(participants, champion, playerIndex, key) {
     return {
         points: mastery.championPoints,
         level: mastery.championLevel,
-        lastPlayTime: mastery.lastPlayTime
     }
 }
 
