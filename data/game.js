@@ -1,4 +1,4 @@
-import { api_call } from "./utils.js";
+import { api_call, deep_copy } from "./utils.js";
 import fs from 'fs';
 
 let champion_data = fs.readFileSync('champion.json');
@@ -17,7 +17,7 @@ export async function get_game_data(MATCH_ID, key) {
     const states = [];
     for (const frame of timeline.info.frames) {
         update_with_frame(state, frame);
-        parsed_state = parse_state(state);
+        const parsed_state = parse_state(state);
         states.push(parsed_state);
     }
     return states;
@@ -36,8 +36,24 @@ async function create_initial_state(participants, game, key) {
             barons: 0,
             elders: 0,
             rifts: 0,
-            towers: 11,
-            inhibCounters: []
+            towers: [
+                1, // Top outer
+                1, // Top inner
+                1, // Top base
+                1, // Mid outer
+                1, // Mid inner
+                1, // Mid base
+                1, // Bot outer
+                1, // Bot inner
+                1, // Bot base
+                1, // Nexus
+                1 // Nexus
+            ],
+            inhibCounters: [
+                0, // Top
+                0, // Mid
+                0 // Bot
+            ]
         };
         for (let j = 0; j < 5; j++) {
             const playerIndex = i * 5 + j;
@@ -85,24 +101,34 @@ async function get_summoner_level(participants, playerIndex, key) {
 }
 
 function update_with_frame(state, frame) {
+    update_general_stats(state, frame);
     for (const event in frame.events) {
         update_with_event(state, event);
+    }
+}
 
+function update_general_stats(state, frame) {
+    for(const participant_id in frame.participantFrames) {
+        const participant = frame.participantFrames[participant_id];
+        const participant_id_int = parseInt(participant_id) - 1;
+        const team_id = parseInt(participant_id_int / 5);
+        state.teams[team_id].players[participant_id_int % 5].creepscore = participant.minionsKilled + participant.jungleMinionsKilled;
+        state.teams[team_id].players[participant_id_int % 5].level = participant.level;
     }
 }
 
 function update_with_event(state, event) {
-    switch(event.type) {
+    switch (event.type) {
         case 'CHAMPION_KILL':
             process_champion_kill(state, event);
-        break;
+            break;
     }
 }
 
 function process_champion_kill(state, event) {
     const time = event.timestamp / 1000 / 60;
     const teamId = parseInt((event.killerId - 1) / 5);
-    if(event.killerId > 0) {
+    if (event.killerId > 0) {
         state.teams[teamId].players[(event.killerId - 1) % 5].kills += 1;
     }
     const victimTeamId = parseInt((event.victimId - 1) / 5);
@@ -127,15 +153,20 @@ export function calc_death_timer(level, time) {
 }
 
 export function calc_tif(time) {
-    if(time >= 0 && time < 15) {
+    if (time >= 0 && time < 15) {
         return 0;
-    }else if(time >= 15 && time < 30) {
+    } else if (time >= 15 && time < 30) {
         return Math.ceil(2 * (time - 15)) * 0.425;
-    }else if(time >= 30 && time < 45) {
+    } else if (time >= 30 && time < 45) {
         return 12.75 + Math.ceil(2 * (time - 30)) * 0.3;
-    }else if(time >= 45 && time < 55){
+    } else if (time >= 45 && time < 55) {
         return 21.75 + Math.ceil(2 * (time - 45)) * 1.45;
-    }else{
+    } else {
         return 50;
     }
+}
+
+function parse_state(state) {
+    const parsed_state = deep_copy(state);
+    return parsed_state;
 }
