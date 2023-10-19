@@ -26,7 +26,7 @@ export async function get_game_data(MATCH_ID, key) {
 async function create_initial_state(participants, game, key) {
     const state = {
         teams: [],
-        time: 0,
+        time: -1,
         win: game.info.participants[0].win,
     };
     for (let i = 0; i < 2; i++) {
@@ -108,6 +108,8 @@ function update_with_frame(state, frame) {
 }
 
 function update_general_stats(state, frame) {
+    state.time += 1;
+
     for (const participant_id in frame.participantFrames) {
         const participant = frame.participantFrames[participant_id];
         const participant_id_int = parseInt(participant_id) - 1;
