@@ -105,13 +105,6 @@ function update_with_frame(state, frame) {
     for (const event of frame.events) {
         update_with_event(state, event);
     }
-
-    // Update inhib timers
-    for (let team_id = 0; team_id < 2; i++) {
-        for (let inhib_id = 0; inhib_id < 3; inhib_id++) {
-            state.teams[team_id].inhibs[inhib_id] -= 1;
-        }
-    }
 }
 
 function update_general_stats(state, frame) {
@@ -124,9 +117,16 @@ function update_general_stats(state, frame) {
     }
 
     for(let team_id = 0; team_id < 2; team_id++) {
+        // Update death timers
         for(const player of state.teams[team_id].players) {
             player.deathTimer -= 1;
             player.deathTimer = Math.max(player.deathTimer, 0);
+        }
+
+        // Update inhib timers
+        for(let i = 0; i < 3; i++) {
+            state.teams[team_id].inhibs[i] -= 1;
+            state.teams[team_id].inhibs[i] = Math.max(state.teams[team_id].inhibs[i], 0); // Cap inhib respawn timer to 0
         }
     }
 }
