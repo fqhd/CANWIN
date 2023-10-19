@@ -49,7 +49,7 @@ async function create_initial_state(participants, game, key) {
                 1, // Nexus
                 1 // Nexus
             ],
-            inhibCounters: [
+            inhibs: [
                 0, // Top
                 0, // Mid
                 0 // Bot
@@ -122,6 +122,42 @@ function update_with_event(state, event) {
         case 'CHAMPION_KILL':
             process_champion_kill(state, event);
             break;
+        case 'BUILDING_KILL':
+            process_building_kill(state, event);
+            break;
+    }
+}
+
+function process_building_kill(state, event) {
+    if(event.buildingType == 'TOWER_BUILDING') {
+        let tower_id;
+        if (event.laneType == 'BOT_LANE') {
+            tower_id = 6;
+        }else if(event.laneType == 'MID_LANE') {
+            tower_id = 3;
+        }
+        if(event.towerType == 'INNER_TURRET') {
+            tower_id += 1;            
+        }else if(event.towerType == 'BASE_TURRET') {
+            tower_id += 2;
+        }else if(event.towerType == 'NEXUS_TURRET') {
+            const team_id = parseInt(event.teamId / 100);
+            const num_nexus_towers = state.teams[team_id].towers[9] + state.teams[team_id].towers[10];
+            if(num_nexus_towers == 2) {
+                state.teams[team_id].towers[10] = 0;
+            }else{
+                state.teams[team_id].towers[9] = 0;
+            }
+        }
+    }else if(event.buildingType == 'INHIBITOR_BUILDING') {
+        let lane = 0;
+        if(event.laneType == 'MID_LANE') {
+            lane = 1;
+        }else if(event.laneType == 'BOT_LANE') {
+            lane = 2;
+        }
+        const team_id = parseInt(event.teamId / 100);
+        state.teams[team_id].inhibs[lane] = 5;
     }
 }
 
