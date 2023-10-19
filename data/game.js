@@ -122,6 +122,13 @@ function update_general_stats(state, frame) {
         state.teams[team_id].players[participant_id_int % 5].creepscore = participant.minionsKilled + participant.jungleMinionsKilled;
         state.teams[team_id].players[participant_id_int % 5].level = participant.level;
     }
+
+    for(let team_id = 0; team_id < 2; team_id++) {
+        for(const player of state.teams[team_id].players) {
+            player.deathTimer -= 1;
+            player.deathTimer = Math.max(player.deathTimer, 0);
+        }
+    }
 }
 
 function update_with_event(state, event) {
