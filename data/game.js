@@ -107,7 +107,7 @@ function update_with_frame(state, frame) {
     }
 
     // Update inhib timers
-    for(let team_id = 0; team_id < 2; i++) {
+    for (let team_id = 0; team_id < 2; i++) {
         for (let inhib_id = 0; inhib_id < 3; inhib_id++) {
             state.teams[team_id].inhibs[inhib_id] -= 1;
         }
@@ -115,7 +115,7 @@ function update_with_frame(state, frame) {
 }
 
 function update_general_stats(state, frame) {
-    for(const participant_id in frame.participantFrames) {
+    for (const participant_id in frame.participantFrames) {
         const participant = frame.participantFrames[participant_id];
         const participant_id_int = parseInt(participant_id) - 1;
         const team_id = parseInt(participant_id_int / 5);
@@ -132,35 +132,63 @@ function update_with_event(state, event) {
         case 'BUILDING_KILL':
             process_building_kill(state, event);
             break;
+        case 'MONSTER_KILL':
+            process_monster_kill(state, event);
+            break;
+    }
+}
+
+function process_monster_kill(state, event) {
+    const team_id = parseInt((event.killerId - 1) / 5);
+    if (event.monsterType == 'DRAGON') {
+        state.teams[team_id].drakes.push(event.monsterSubType);
+    } else if (event.monsterType == 'RIFTHERALD') {
+        state.teams[team_id].rifts += 1;
+    } else if (event.monsterType == 'BARON_NASHOR') {
+        for (const player of state.teams[team_id].players) {
+            // Only give the baron buff to players who are alive
+            if(player.deathTimer == 0) {
+                player.baronTimer = 3;
+            }
+        }
+        state.teams[team_id].barons += 1;
+    } else if (event.monsterType == 'ELDER_DRAGON') {
+        for (const player of state.teams[team_id].players) {
+            // Only give the elder buff to players who are alive
+            if(player.deathTimer == 0) {
+                player.elderTimer = 2.5;
+            }
+        }
+        state.team[team_id].elders += 1;
     }
 }
 
 function process_building_kill(state, event) {
-    if(event.buildingType == 'TOWER_BUILDING') {
+    if (event.buildingType == 'TOWER_BUILDING') {
         let tower_id;
         if (event.laneType == 'BOT_LANE') {
             tower_id = 6;
-        }else if(event.laneType == 'MID_LANE') {
+        } else if (event.laneType == 'MID_LANE') {
             tower_id = 3;
         }
-        if(event.towerType == 'INNER_TURRET') {
-            tower_id += 1;            
-        }else if(event.towerType == 'BASE_TURRET') {
+        if (event.towerType == 'INNER_TURRET') {
+            tower_id += 1;
+        } else if (event.towerType == 'BASE_TURRET') {
             tower_id += 2;
-        }else if(event.towerType == 'NEXUS_TURRET') {
+        } else if (event.towerType == 'NEXUS_TURRET') {
             const team_id = parseInt(event.teamId / 100);
             const num_nexus_towers = state.teams[team_id].towers[9] + state.teams[team_id].towers[10];
-            if(num_nexus_towers == 2) {
+            if (num_nexus_towers == 2) {
                 state.teams[team_id].towers[10] = 0;
-            }else{
+            } else {
                 state.teams[team_id].towers[9] = 0;
             }
         }
-    }else if(event.buildingType == 'INHIBITOR_BUILDING') {
+    } else if (event.buildingType == 'INHIBITOR_BUILDING') {
         let lane = 0;
-        if(event.laneType == 'MID_LANE') {
+        if (event.laneType == 'MID_LANE') {
             lane = 1;
-        }else if(event.laneType == 'BOT_LANE') {
+        } else if (event.laneType == 'BOT_LANE') {
             lane = 2;
         }
         const team_id = parseInt(event.teamId / 100);
@@ -170,20 +198,20 @@ function process_building_kill(state, event) {
 
 function process_champion_kill(state, event) {
     const time = event.timestamp / 1000 / 60;
-    const teamId = parseInt((event.killerId - 1) / 5);
+    const team_id = parseInt((event.killerId - 1) / 5);
     if (event.killerId > 0) {
-        state.teams[teamId].players[(event.killerId - 1) % 5].kills += 1;
+        state.teams[team_id].players[(event.killerId - 1) % 5].kills += 1;
     }
-    const victimTeamId = parseInt((event.victimId - 1) / 5);
-    const victim = state.teams[victimTeamId].players[(event.victimId - 1) % 5];
+    const victim_team_id = parseInt((event.victimId - 1) / 5);
+    const victim = state.teams[victim_team_id].players[(event.victimId - 1) % 5];
     victim.deaths += 1;
     victim.baronTimer = 0;
     victim.elderTimer = 0;
     victim.deathTimer = calc_death_timer(victim.level, time);
     if (event.assistingParticipantIds) {
-        for (const assistId of event.assistingParticipantIds) {
-            const assistTeamId = parseInt((assistId - 1) / 5);
-            state.teams[assistTeamId].players[(assistId - 1) % 5].assists += 1;
+        for (const assist_id of event.assistingParticipantIds) {
+            const assist_team_id = parseInt((assist_id - 1) / 5);
+            state.teams[assist_team_id].players[(assist_id - 1) % 5].assists += 1;
         }
     }
 }
