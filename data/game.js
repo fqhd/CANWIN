@@ -105,6 +105,13 @@ function update_with_frame(state, frame) {
     for (const event of frame.events) {
         update_with_event(state, event);
     }
+
+    // Update inhib timers
+    for(let team_id = 0; team_id < 2; i++) {
+        for (let inhib_id = 0; inhib_id < 3; inhib_id++) {
+            state.teams[team_id].inhibs[inhib_id] -= 1;
+        }
+    }
 }
 
 function update_general_stats(state, frame) {
