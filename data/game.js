@@ -121,7 +121,7 @@ function update_general_stats(state, frame) {
 	for (let team_id = 0; team_id < 2; team_id++) {
 		// Update death timers
 		for (const player of state.teams[team_id].players) {
-			player.deathTimer -= 1;
+			player.deathTimer -= 60;
 			player.deathTimer = Math.max(player.deathTimer, 0);
 		}
 
@@ -216,7 +216,9 @@ function process_champion_kill(state, event) {
 	victim.deaths += 1;
 	victim.baronTimer = 0;
 	victim.elderTimer = 0;
-	victim.deathTimer = calc_death_timer(victim.level, time);
+	const deathTimer = calc_death_timer(victim.level, time);
+	const nextWholeMinute = (Math.ceil(time) - time) * 60;
+	victim.deathTimer = Math.max((deathTimer - nextWholeMinute), 0);
 	if (event.assistingParticipantIds) {
 		for (const assist_id of event.assistingParticipantIds) {
 			const assist_team_id = parseInt((assist_id - 1) / 5);
