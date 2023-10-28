@@ -70,7 +70,7 @@ async function create_initial_state(participants, game, key) {
 				assists: 0,
 				baronTimer: 0,
 				elderTimer: 0,
-				respawnTimer: 0.0,
+				deathTimer: 0,
 				summonerLevel: summonerLevel,
 				level: 1,
 				creepscore: 0,
@@ -141,7 +141,7 @@ function update_with_event(state, event) {
 		case 'BUILDING_KILL':
 			process_building_kill(state, event);
 			break;
-		case 'MONSTER_KILL':
+		case 'ELITE_MONSTER_KILL':
 			process_monster_kill(state, event);
 			break;
 	}
@@ -200,9 +200,7 @@ function process_building_kill(state, event) {
 		} else if (event.laneType == 'BOT_LANE') {
 			lane = 2;
 		}
-		console.log(event.teamId);
 		const team_id = parseInt(event.teamId / 100) - 1;
-		console.log(team_id);
 		state.teams[team_id].inhibs[lane] = 5;
 	}
 }
