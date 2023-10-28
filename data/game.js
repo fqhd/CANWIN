@@ -174,7 +174,8 @@ function process_monster_kill(state, event) {
 
 function process_building_kill(state, event) {
 	if (event.buildingType == 'TOWER_BUILDING') {
-		let tower_id;
+		let tower_id = 0;
+		const team_id = parseInt(event.teamId / 100) - 1;
 		if (event.laneType == 'BOT_LANE') {
 			tower_id = 6;
 		} else if (event.laneType == 'MID_LANE') {
@@ -185,13 +186,14 @@ function process_building_kill(state, event) {
 		} else if (event.towerType == 'BASE_TURRET') {
 			tower_id += 2;
 		} else if (event.towerType == 'NEXUS_TURRET') {
-			const team_id = parseInt(event.teamId / 100) - 1;
 			const num_nexus_towers = state.teams[team_id].towers[9] + state.teams[team_id].towers[10];
 			if (num_nexus_towers == 2) {
 				state.teams[team_id].towers[10] = 0;
 			} else {
 				state.teams[team_id].towers[9] = 0;
 			}
+		}else{
+			state.teams[team_id].towers[tower_id] = 0;
 		}
 	} else if (event.buildingType == 'INHIBITOR_BUILDING') {
 		let lane = 0;
