@@ -18,9 +18,7 @@ class Game():
 					'baronTimer': 0,
 					'elderTimer': 0,
 					'champion': player_data[i*5+j]['championName'],
-					'mastery:': self.get_champion_mastery(player_data, i*5+j),
-					'last_time_champion_played': self.get_last_time_champion_played(player_data, i*5+j),
-					'last_time_game_played': self.get_last_time_game_played(player_data, i*5+j)
+					'mastery:': self.get_champion_mastery(player_data, i*5+j)
 				})
 			self.teams.append({
 				'players': players,
@@ -95,12 +93,6 @@ class Game():
 			state.append(team_state)
 		return state
 	
-	def get_last_time_champion_played(self, player_data, player_index):
-		player_name = player_data[player_index]['summonerName']
-
-	def get_last_time_game_played(self, player_data, player_index):
-		pass
-
 	def get_champion_mastery(self, player_data, player_index):
 		champion_name = player_data[player_index]['championName']
 		champion_id = self.champion['data'][champion_name]['key']
