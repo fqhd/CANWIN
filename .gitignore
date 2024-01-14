@@ -6,3 +6,5 @@ test.json
 .env
 node_modules
 test.js
+match_data
+*.npy

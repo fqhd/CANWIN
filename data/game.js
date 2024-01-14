@@ -6,13 +6,27 @@ champion_data = JSON.parse(champion_data);
 
 export async function get_game_data(MATCH_ID, key) {
 	// Get game and timeline data
-	let game = await api_call(`https://europe.api.riotgames.com/lol/match/v5/matches/${MATCH_ID}?api_key=${key}`);
-	game = await game.json();
-	let timeline = await api_call(`https://europe.api.riotgames.com/lol/match/v5/matches/${MATCH_ID}/timeline?api_key=${key}`);
-	timeline = await timeline.json();
 
+	let game = await api_call(`https://europe.api.riotgames.com/lol/match/v5/matches/${MATCH_ID}?api_key=${key}`);
+	if (game.status != 200) {
+		console.log('failed to get game data');
+		return null;
+	}
+	game = await game.json();
+	
+	let timeline = await api_call(`https://europe.api.riotgames.com/lol/match/v5/matches/${MATCH_ID}/timeline?api_key=${key}`);
+	if (timeline.status != 200) {
+		console.log('failed to get timeline data');
+		return null;
+	}
+	timeline = await timeline.json();
+	
 	// Create internal state
 	const state = await create_initial_state(timeline.info.participants, game, key);
+	if (state == null) {
+		console.log('failed to create initial state');
+		return null;
+	}
 
 	const states = [];
 	for (const frame of timeline.info.frames) {
@@ -59,7 +73,15 @@ async function create_initial_state(participants, game, key) {
 			const playerIndex = i * 5 + j;
 			const champion = game.info.participants[playerIndex].championName;
 			const mastery = await get_champion_mastery(participants, champion, playerIndex, key);
+			if (mastery == null) {
+				console.log('failed to retrieve champion mastery');
+				return null;
+			}
 			const summonerLevel = await get_summoner_level(participants, playerIndex, key);
+			if (summonerLevel == null) {
+				console.log('failed to retrieve summoner level');
+				return null;
+			}
 			team.players.push({
 				champion: champion,
 				masteryPoints: mastery.points,
@@ -83,9 +105,12 @@ async function create_initial_state(participants, game, key) {
 
 async function get_champion_mastery(participants, champion, playerIndex, key) {
 	const puuid = participants[playerIndex].puuid;
-	console.log(champion);
 	const champion_id = champion_data.data[champion].key;
 	let mastery = await api_call(`https://euw1.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-puuid/${puuid}/by-champion/${champion_id}?api_key=${key}`);
+	if (mastery.status != 200) {
+		console.log('failed to fetch with champion-mastery api call');
+		return null;
+	}
 	mastery = await mastery.json();
 	return {
 		points: mastery.championPoints,
@@ -96,6 +121,10 @@ async function get_champion_mastery(participants, champion, playerIndex, key) {
 async function get_summoner_level(participants, playerIndex, key) {
 	const puuid = participants[playerIndex].puuid;
 	let summonerData = await api_call(`https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}?api_key=${key}`);
+	if (summonerData.status != 200) {
+		console.log('failed to fetch with summoner by puuid api call');
+		return null;
+	}
 	summonerData = await summonerData.json();
 	return summonerData.summonerLevel;
 }
@@ -188,13 +217,13 @@ function process_building_kill(state, event) {
 		} else if (event.towerType == 'NEXUS_TURRET') {
 			const num_nexus_towers = state.teams[team_id].towers[9] + state.teams[team_id].towers[10];
 			if (num_nexus_towers == 2) {
-				state.teams[team_id].towers[10] = 0;
+				tower_id = 10;
 			} else {
-				state.teams[team_id].towers[9] = 0;
+				tower_id = 9;
 			}
-		}else{
-			state.teams[team_id].towers[tower_id] = 0;
 		}
+		state.teams[team_id].towers[tower_id] = 0;
+		
 	} else if (event.buildingType == 'INHIBITOR_BUILDING') {
 		let lane = 0;
 		if (event.laneType == 'MID_LANE') {
