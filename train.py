@@ -3,6 +3,7 @@ import torch
 from networks import TinyNet
 from dataset import train_dl, val_dl, test_dl
 from tqdm import tqdm
+import matplotlib.pyplot as plt
 
 device = (
 	'cuda' if torch.cuda.is_available() else
@@ -15,7 +16,7 @@ print(f'Using {device}')
 net = TinyNet()
 net = net.to(device)
 
-optim = torch.optim.Adam(net.parameters(), lr=2e-5)
+optim = torch.optim.Adam(net.parameters(), lr=1e-3)
 loss_fn = torch.nn.BCEWithLogitsLoss()
 
 def train(dl):
@@ -79,3 +80,23 @@ for epoch in range(5):
 	print(f'Training Accuracy: {t_accuracy}')
 	print(f'Validation Loss: {v_loss}')
 	print(f'Validation Accuracy : {v_accuracy}')
+
+plt.figure(figsize=(12, 6))
+
+plt.subplot(1, 2, 1)
+plt.plot(train_losses, label="Train Loss")
+plt.plot(val_losses, label="Validation Loss")
+plt.legend()
+plt.xlabel("Epochs")
+plt.ylabel("Loss")
+plt.title("Training and Validation Loss")
+
+plt.subplot(1, 2, 2)
+plt.plot(train_accs, label="Train Accuracy")
+plt.plot(val_accs, label="Validation Accuracy")
+plt.legend()
+plt.xlabel("Epochs")
+plt.ylabel("Accuracy")
+plt.title("Training and Validation Accuracy")
+
+plt.show()

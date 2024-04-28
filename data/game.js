@@ -148,10 +148,14 @@ function update_general_stats(state, frame) {
 	}
 
 	for (let team_id = 0; team_id < 2; team_id++) {
-		// Update death timers
+		// Update timers
 		for (const player of state.teams[team_id].players) {
 			player.deathTimer -= 60;
 			player.deathTimer = Math.max(player.deathTimer, 0);
+			player.baronTimer--;
+			player.baronTimer = Math.max(player.baronTimer, 0);
+			player.elderTimer--;
+			player.elderTimer = Math.max(player.elderTimer, 0);
 		}
 
 		// Update inhib timers
@@ -194,7 +198,7 @@ function process_monster_kill(state, event) {
 		for (const player of state.teams[team_id].players) {
 			// Only give the elder buff to players who are alive
 			if (player.deathTimer == 0) {
-				player.elderTimer = 2.5;
+				player.elderTimer = 3;
 			}
 		}
 		state.team[team_id].elders += 1;

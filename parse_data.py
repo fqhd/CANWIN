@@ -2,6 +2,8 @@ import os
 import json
 import pandas as pd
 import numpy as np
+import random
+from tqdm import tqdm
 
 df = pd.read_csv('champions.csv')
 
@@ -32,16 +34,16 @@ def parse_frame(frame):
 	for t in frame['teams']:
 		for p in t['players']:
 			data += get_champ_vec(p['champion'])
-			data.append(p['masteryPoints'] / 1000000)
-			data.append(p['masteryLevel'] / 7)
-			data.append(int(p['smurf']))
+			# data.append(p['masteryPoints'] / 1000000)
+			# data.append(p['masteryLevel'] / 7)
+			# data.append(int(p['smurf']))
 			data.append(p['kills'] / 20)
 			data.append(p['deaths'] / 16)
 			data.append(p['assists'] / 40)
 			data.append(p['baronTimer'] / 3)
 			data.append(p['elderTimer'] / 3)
 			data.append(p['deathTimer'] / 79)
-			data.append(p['summonerLevel'] / 1000)
+			# data.append(p['summonerLevel'] / 1000)
 			data.append(p['level'] / 18)
 			data.append(p['creepscore'] / 400)
 		for d in t['drakes'][:4]:
@@ -60,26 +62,32 @@ def parse_frame(frame):
 		data.append(t['inhibs'][0] / 5)
 		data.append(t['inhibs'][1] / 5)
 		data.append(t['inhibs'][2] / 5)
+	data.append(frame['time'] / 30)
 	data.append(int(frame['win']))
 	return data
 
-match_paths = os.listdir('data/match_data')
+def get_file_paths():
+    file_paths = []
+    dirs = os.listdir('data/match_data')
+    for d in dirs:
+        files = os.listdir(f'data/match_data/{d}')
+        for f in files:
+            path = f'data/match_data/{d}/{f}'
+            file_paths.append(path)
+    return file_paths
+file_paths = get_file_paths()
 
-idx = 0
-save_counter = 0
-batch = np.empty(shape=(100, 373), dtype='float32')
-for m_path in match_paths:
-	with open(f'data/match_data/{m_path}') as f:
-		frames = json.load(f)
-	for frame in frames:
-		p_f = parse_frame(frame)
-		batch[idx] = np.array(p_f)
-		idx += 1
-		if idx == 100:
-			idx = 0
-			np.save(f'dataset/{save_counter}', batch)
-			save_counter += 1
-			print(f'saved {save_counter} batches so far')
+random.shuffle(file_paths)
 
-print(p_f)
-print(len(p_f))
+def load_frame(path):
+    with open(path) as f:
+        frame = json.load(f)
+    return frame
+
+data = np.empty(shape=(len(file_paths), len(parse_frame(load_frame(file_paths[0])))), dtype='float32')
+for idx, path in tqdm(enumerate(file_paths)):
+	frame = load_frame(path)
+	encoded_frame = parse_frame(frame)
+	numpy_frame = np.array(encoded_frame)
+	data[idx] = numpy_frame
+np.save('dataset', data)

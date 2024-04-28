@@ -62,18 +62,17 @@ async function getSummonerMatchIDs(summonerID, key) {
 
 async function get_match_id_batch(rank, tier, page, key) {
 	let matchIDs = [];
-	const limit = 10000;
+	const limit = 250;
 
 	const summonerIDs = await getSummonerIDs(rank, tier, page, key);
 	for (const summoner_id of summonerIDs) {
 		matchIDs = matchIDs.concat(await getSummonerMatchIDs(summoner_id, key));
-		if(matchIDs.length > limit) {
+		if(matchIDs.length >= limit) {
 			break;
 		}
 	}
 
 	return matchIDs;
-
 }
 
 export async function getMatchIDs(rank) {

@@ -1,21 +1,10 @@
-import os
 import numpy as np
 import torch.utils.data as dutils
-from tqdm import tqdm
 
 TRAIN_SPLIT = 0.8
 
 print('Loading the dataset into memory')
-b_paths = os.listdir('dataset')
-
-dataset = np.empty((len(b_paths)*100, 373), dtype='float32')
-
-idx = 0
-for b_path in tqdm(b_paths):
-	b = np.load(f'dataset/{b_path}')
-	dataset[idx:idx+100] = b
-	idx += 100
-
+dataset = np.load('dataset.npy')
 print(f'Finished loading the dataset, found {len(dataset)} items')
 
 class Dataset(dutils.Dataset):
