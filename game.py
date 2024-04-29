@@ -1,6 +1,9 @@
 import math
 import requests
 from urllib3.exceptions import InsecureRequestWarning
+import pandas as pd
+
+df = pd.read_csv('champions.csv')
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
@@ -174,7 +177,8 @@ def query_game_state():
 			for p in state['teams'][teamid]['players']:
 				p['baronTimer'] = max(180 - timeSinceNash, 0)
 		elif event['EventName'] == 'HeraldKill':
-			teamid = get_player_teamId(event['KillerName'])
+			killer = event['KillerName']
+			teamid = get_player_teamId(player_data, killer)
 			state['teams'][teamid]['rifts'] += 1
 		elif event['EventName'] == 'ChampionKill':
 			victimid = find_player(player_data, event['VictimName'])
@@ -186,5 +190,80 @@ def query_game_state():
 			victim['deathTimer'] = max(deathTimer - timeSinceDeath, 0)
 	return state
 		
+def get_champ_vec(champ_name):
+	arr = []
+	lcu_to_ingame = {
+		"Cho'Gath": 'Chogath',
+		"Kog'Maw": 'KogMaw',
+		"Vel'Koz": 'Velkoz',
+		"Bel'Veth": 'Belveth',
+		"Fiddlesticks": 'FiddleSticks',
+		"Wukong": 'MonkeyKing',
+		"Master Yi": 'MasterYi',
+		"Miss Fortune": 'MissFortune',
+		"Jarvan IV": 'JarvanIV',
+		"Dr. Mundo": 'DrMundo',
+		"Aurelion Sol": 'AurelionSol',
+		"K'Sante": 'KSante',
+		"Kai'Sa": 'Kaisa',
+		"Kha'Zix": 'Khazix'
+	}
+	print(champ_name)
+	if champ_name in lcu_to_ingame:
+		champ_name = lcu_to_ingame[champ_name]
+	row = df.loc[df['Champion'] == champ_name].iloc[0]
+	for i in range(1, 16):
+		if i == 7:
+			if row.iloc[i] == 1:
+				arr.append(1)
+				arr.append(0)
+				arr.append(0)
+			elif row.iloc[i] == 2:
+				arr.append(0)
+				arr.append(1)
+				arr.append(0)
+			elif row.iloc[i] == 3:
+				arr.append(0)
+				arr.append(0)
+				arr.append(1)
+		else:
+			arr.append(row.iloc[i] / 10)
+	return arr
 
-		
+
+def parse_frame(frame):
+	drake_names = ['EARTH_DRAGON', 'WATER_DRAGON', 'FIRE_DRAGON', 'HEXTECH_DRAGON', 'AIR_DRAGON', 'CHEMTECH_DRAGON']
+	data = []
+	for t in frame['teams']:
+		for p in t['players']:
+			data += get_champ_vec(p['champion'])
+			# data.append(p['masteryPoints'] / 1000000)
+			# data.append(p['masteryLevel'] / 7)
+			# data.append(int(p['smurf']))
+			data.append(p['kills'] / 20)
+			data.append(p['deaths'] / 16)
+			data.append(p['assists'] / 40)
+			data.append(p['baronTimer'] / (3 * 60))
+			data.append(p['elderTimer'] / (3 * 60))
+			data.append(p['deathTimer'] / 79)
+			# data.append(p['summonerLevel'] / 1000)
+			data.append(p['level'] / 18)
+			data.append(p['creepscore'] / 400)
+		for d in t['drakes'][:4]:
+			oh_drake = [0, 0, 0, 0, 0, 0] # one hot encoded drake
+			if d != 'ELDER_DRAGON':
+				oh_drake[drake_names.index(d)] = 1
+			data += oh_drake
+		remaining_drakes = max(4 - len(t['drakes']), 0)
+		for _ in range(remaining_drakes):
+			oh_drake = [0, 0, 0, 0, 0, 0] # one hot encoded drake
+			data += oh_drake
+		data.append(t['barons'] / 2)
+		data.append(t['elders'] / 2)
+		data.append(t['rifts'] / 2)
+		data += t['turrets']
+		data.append(t['inhibs'][0] / 300)
+		data.append(t['inhibs'][1] / 300)
+		data.append(t['inhibs'][2] / 300)
+	data.append(frame['time'] / (30 * 60))
+	return data
