@@ -1,13 +1,20 @@
-from game import Game
-import requests
+import game
+import torch
+from networks import TinyNet
+import time
 
-player_data = requests.get('https://127.0.0.1:2999/liveclientdata/playerlist', verify=False)
-event_data = requests.get('https://127.0.0.1:2999/liveclientdata/eventdata', verify=False)
-player_data = player_data.json()
-event_data = event_data.json()
+net = TinyNet()
+net.eval()
+net.load_state_dict(torch.load('net.pth'))
 
-print(player_data[-1])
-
-# game = Game(player_data)
-
-# game.update(player_data, event_data)
+while True:
+	state = game.query_game_state()
+	frame = game.parse_frame(state)
+	frame = torch.tensor(frame, dtype=torch.float32)
+	frame = torch.unsqueeze(frame, 0)
+	with torch.no_grad():
+		pred = net(frame)
+	pred = torch.sigmoid(pred)
+	pred = pred.item() * 100
+	print(pred)
+	time.sleep(5)
