@@ -6,7 +6,6 @@ champion_data = JSON.parse(champion_data);
 
 export async function get_game_data(MATCH_ID, key) {
 	// Get game and timeline data
-
 	let game = await api_call(`https://europe.api.riotgames.com/lol/match/v5/matches/${MATCH_ID}?api_key=${key}`);
 	if (game.status != 200) {
 		console.log('failed to get game data');
@@ -22,7 +21,7 @@ export async function get_game_data(MATCH_ID, key) {
 	timeline = await timeline.json();
 	
 	// Create internal state
-	const state = await create_initial_state(timeline.info.participants, game, key);
+	const state = await create_initial_state(game);
 	if (state == null) {
 		console.log('failed to create initial state');
 		return null;
@@ -37,7 +36,7 @@ export async function get_game_data(MATCH_ID, key) {
 	return states;
 }
 
-async function create_initial_state(participants, game, key) {
+async function create_initial_state(game) {
 	const state = {
 		teams: [],
 		time: -1,
@@ -72,28 +71,14 @@ async function create_initial_state(participants, game, key) {
 		for (let j = 0; j < 5; j++) {
 			const playerIndex = i * 5 + j;
 			const champion = game.info.participants[playerIndex].championName;
-			const mastery = await get_champion_mastery(participants, champion, playerIndex, key);
-			if (mastery == null) {
-				console.log('failed to retrieve champion mastery');
-				return null;
-			}
-			const summonerLevel = await get_summoner_level(participants, playerIndex, key);
-			if (summonerLevel == null) {
-				console.log('failed to retrieve summoner level');
-				return null;
-			}
 			team.players.push({
 				champion: champion,
-				masteryPoints: mastery.points,
-				masteryLevel: mastery.level,
-				smurf: summonerLevel < 40,
 				kills: 0,
 				deaths: 0,
 				assists: 0,
 				baronTimer: 0,
 				elderTimer: 0,
 				deathTimer: 0,
-				summonerLevel: summonerLevel,
 				level: 1,
 				creepscore: 0,
 			});
@@ -101,32 +86,6 @@ async function create_initial_state(participants, game, key) {
 		state.teams.push(team);
 	}
 	return state;
-}
-
-async function get_champion_mastery(participants, champion, playerIndex, key) {
-	const puuid = participants[playerIndex].puuid;
-	const champion_id = champion_data.data[champion].key;
-	let mastery = await api_call(`https://euw1.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-puuid/${puuid}/by-champion/${champion_id}?api_key=${key}`);
-	if (mastery.status != 200) {
-		console.log('failed to fetch with champion-mastery api call');
-		return null;
-	}
-	mastery = await mastery.json();
-	return {
-		points: mastery.championPoints,
-		level: mastery.championLevel,
-	}
-}
-
-async function get_summoner_level(participants, playerIndex, key) {
-	const puuid = participants[playerIndex].puuid;
-	let summonerData = await api_call(`https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}?api_key=${key}`);
-	if (summonerData.status != 200) {
-		console.log('failed to fetch with summoner by puuid api call');
-		return null;
-	}
-	summonerData = await summonerData.json();
-	return summonerData.summonerLevel;
 }
 
 function update_with_frame(state, frame) {
