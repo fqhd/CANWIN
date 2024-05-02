@@ -3,7 +3,6 @@ import torch
 from networks import TinyNet
 import time
 import os
-import math
 
 net = TinyNet()
 net.eval()
