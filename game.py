@@ -122,13 +122,13 @@ def query_game_state():
 				tower_to_index = {
 					'Turret_T1_L_03_A': 0,
 					'Turret_T1_L_02_A': 1,
-					'Turret_T1_L_01_A': 2,
+					'Turret_T1_C_06_A': 2,
 					'Turret_T1_C_05_A': 3,
 					'Turret_T1_C_04_A': 4,
 					'Turret_T1_C_03_A': 5,
 					'Turret_T1_R_03_A': 6,
 					'Turret_T1_R_02_A': 7,
-					'Turret_T1_R_01_A': 8,
+					'Turret_T1_C_07_A': 8,
 					'Turret_T1_C_02_A': 9,
 					'Turret_T1_C_01_A': 10
 				}
