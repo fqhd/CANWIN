@@ -16,7 +16,7 @@ while True:
 	with torch.no_grad():
 		pred = net(frame)
 	pred = torch.sigmoid(pred)
-	pred = pred.item() * 1
+	pred = pred.item()
 	if side == 'CHAOS':
 		pred = 1 - pred
 	os.system('cls')
