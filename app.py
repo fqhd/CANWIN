@@ -3,6 +3,7 @@ import torch
 from networks import TinyNet
 import time
 import os
+import math
 
 net = TinyNet()
 net.eval()
@@ -20,5 +21,5 @@ while True:
 	if side == 'CHAOS':
 		pred = 1 - pred
 	os.system('cls')
-	print(f'{int(pred * 100)}%')
+	print(f'{round(pred * 100)}%')
 	time.sleep(5)
