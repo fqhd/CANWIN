@@ -2,6 +2,7 @@ import game
 import torch
 from networks import TinyNet
 import time
+import os
 
 net = TinyNet()
 net.eval()
@@ -15,8 +16,9 @@ while True:
 	with torch.no_grad():
 		pred = net(frame)
 	pred = torch.sigmoid(pred)
-	pred = pred.item() * 100
+	pred = pred.item() * 1
 	if side == 'CHAOS':
-		pred = 100 - pred
-	print(pred)
+		pred = 1 - pred
+	os.system('cls')
+	print(f'{int(pred * 100)}%')
 	time.sleep(5)
