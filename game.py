@@ -96,13 +96,33 @@ def calc_tif(time):
 	else:
 		return 50
 
+def get_characters_before_hash(input_string):
+    result = ''
+    for char in input_string:
+        if char == '#':
+            break
+        result += char
+    return result
+
+def get_player_team_side(player_data, active_player):
+	summonerName = active_player['summonerName']
+	summonerName = get_characters_before_hash(summonerName)
+	for p in player_data:
+		if p['summonerName'] == summonerName:
+			return p['team']
+	return None
+
 def query_game_state():
 	player_data = requests.get('https://127.0.0.1:2999/liveclientdata/playerlist', verify=False)
 	event_data = requests.get('https://127.0.0.1:2999/liveclientdata/eventdata', verify=False)
 	game_data = requests.get('https://127.0.0.1:2999/liveclientdata/gamestats', verify=False)
+	active_player = requests.get('https://127.0.0.1:2999/liveclientdata/activeplayer', verify=False)
 	player_data = player_data.json()
 	event_data = event_data.json()
 	game_data = game_data.json()
+	active_player = active_player.json()
+	team_side = get_player_team_side(player_data, active_player)
+	print(team_side)
 	state = init_game_state(player_data)
 	state['time'] = game_data['gameTime']
 	event_data = event_data['Events']
@@ -198,9 +218,9 @@ def query_game_state():
 			victim = state['teams'][victim_team_id]['players'][victimid % 5]
 			deathTime = event['EventTime']
 			timeSinceDeath = game_data['gameTime'] - deathTime
-			deathTimer = calc_death_timer(victim['level'], state['time'])
+			deathTimer = calc_death_timer(victim['level'], state['time'] / 60)
 			victim['deathTimer'] = max(deathTimer - timeSinceDeath, 0)
-	return state
+	return state, team_side
 		
 def get_champ_vec(champ_name):
 	arr = []
