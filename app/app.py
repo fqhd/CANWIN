@@ -1,12 +1,9 @@
-import game
+import app.game as game
 import torch
-from networks import TinyNet
 import time
 import os
 
-net = TinyNet()
-net.eval()
-net.load_state_dict(torch.load('net.pth'))
+net = torch.load('net.pth')
 
 while True:
 	state, side = game.query_game_state()
