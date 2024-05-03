@@ -6,10 +6,10 @@ import json
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
-df = pd.read_csv('champions.csv')
+df = pd.read_csv('../model/champions.csv')
 
 def create_champion_to_id():
-	with open('data/champion.json', encoding='utf-8') as f:
+	with open('../data/champion.json', encoding='utf-8') as f:
 		champion = json.load(f)
 	champion = champion['data']
 	dic = {}
