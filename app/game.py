@@ -122,7 +122,6 @@ def query_game_state():
 	game_data = game_data.json()
 	active_player = active_player.json()
 	team_side = get_player_team_side(player_data, active_player)
-	print(team_side)
 	state = init_game_state(player_data)
 	state['time'] = game_data['gameTime']
 	event_data = event_data['Events']
