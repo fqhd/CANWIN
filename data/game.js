@@ -1,8 +1,4 @@
 import { api_call, deep_copy } from "./utils.js";
-import fs from 'fs';
-
-let champion_data = fs.readFileSync('champion.json');
-champion_data = JSON.parse(champion_data);
 
 export async function get_game_data(MATCH_ID, key) {
 	// Get game and timeline data
