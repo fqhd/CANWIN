@@ -8,9 +8,18 @@ if (require('electron-squirrel-startup')) {
 
 const createWindow = () => {
 	// Create the browser window.
+	const x = 1920 - 128;
+	const y = 60;
 	const mainWindow = new BrowserWindow({
-		width: 800,
-		height: 600,
+		width: 128,
+		height: 128,
+		x: x,
+		y: y,
+		frame: false,
+		resizable: false,
+		transparent: true,
+		alwaysOnTop: true,
+		backgroundColor: '#00000000',
 		webPreferences: {
 			nodeIntegration: true
 		},
@@ -23,6 +32,7 @@ const createWindow = () => {
 	Menu.setApplicationMenu(menu);
 
 	// Open the DevTools.
+	// mainWindow.webContents.openDevTools();
 };
 
 // This method will be called when Electron has finished
