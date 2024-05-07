@@ -1,10 +1,6 @@
-const { app, BrowserWindow, Menu } = require('electron');
-const path = require('node:path');
-
-// Handle creating/removing shortcuts on Windows when installing/uninstalling.
-if (require('electron-squirrel-startup')) {
-	app.quit();
-}
+const {app, BrowserWindow, Menu } = require('electron');
+const path = require('path');
+const {query_game_state} = require('./game.js');
 
 const createWindow = () => {
 	// Create the browser window.
@@ -16,23 +12,39 @@ const createWindow = () => {
 		x: x,
 		y: y,
 		frame: false,
-		resizable: false,
+		resizable: true,
 		transparent: true,
 		alwaysOnTop: true,
 		backgroundColor: '#00000000',
 		webPreferences: {
-			nodeIntegration: true
+			nodeIntegration: true,
+			preload: path.join(__dirname, 'preload.js')
 		},
 	});
 
 	// and load the index.html of the app.
-	mainWindow.loadFile(path.join(__dirname, 'index.html'));
+	mainWindow.loadFile('src/index.html');
 	const menu = Menu.buildFromTemplate([]);
 
 	Menu.setApplicationMenu(menu);
 
 	// Open the DevTools.
-	// mainWindow.webContents.openDevTools();
+	mainWindow.webContents.openDevTools();
+
+	setInterval(async () => {
+		const [state, side] = await query_game_state();
+		let response = await fetch('https://api.whoisfahd.dev/canwin', {
+			method: 'GET',
+			headers: {
+				state: JSON.stringify(state)
+			}
+		});
+		response = await response.text();
+		response = parseFloat(response);
+		response *= 100;
+		response = parseInt(response);
+		mainWindow.webContents.send('msg', response);
+	}, 5000);
 };
 
 // This method will be called when Electron has finished
