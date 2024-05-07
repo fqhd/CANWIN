@@ -8,3 +8,5 @@ node_modules
 test.js
 match_data
 *.npy
+out
+.ipynb_checkpoints
