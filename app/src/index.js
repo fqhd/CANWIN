@@ -4,7 +4,7 @@ const {query_game_state} = require('./game.js');
 
 const createWindow = () => {
 	// Create the browser window.
-	const x = 1920 - 128;
+	const x = 1920 - 90;
 	const y = 60;
 	const mainWindow = new BrowserWindow({
 		width: 128,
@@ -29,21 +29,28 @@ const createWindow = () => {
 	Menu.setApplicationMenu(menu);
 
 	// Open the DevTools.
-	mainWindow.webContents.openDevTools();
+	// mainWindow.webContents.openDevTools();
 
 	setInterval(async () => {
-		const [state, side] = await query_game_state();
-		let response = await fetch('https://api.whoisfahd.dev/canwin', {
-			method: 'GET',
-			headers: {
-				state: JSON.stringify(state)
+		try {
+			const [state, side] = await query_game_state();
+			let response = await fetch('https://api.whoisfahd.dev/canwin', {
+				method: 'GET',
+				headers: {
+					state: JSON.stringify(state)
+				}
+			});
+			response = await response.text();
+			response = parseFloat(response);
+			if (side == 'CHAOS') {
+				response = 1 - response;
 			}
-		});
-		response = await response.text();
-		response = parseFloat(response);
-		response *= 100;
-		response = parseInt(response);
-		mainWindow.webContents.send('msg', response);
+			response *= 100;
+			response = parseInt(response);
+			mainWindow.webContents.send('msg', response);
+		} catch(e) {
+			console.log(e);
+		}
 	}, 5000);
 };
 
