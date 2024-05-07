@@ -1,4 +1,3 @@
-import torch
 from torch import nn
 
 class TinyNet(nn.Module):
@@ -16,11 +15,3 @@ class TinyNet(nn.Module):
 
 	def forward(self, x):
 		return self.stack(x)
-
-if __name__ == '__main__':
-	x = torch.randn((256, 372))
-	net = TinyNet()
-	outputs = net(x)
-	print(outputs)
-	print(x.shape)
-	print(outputs.shape)
