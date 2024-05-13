@@ -4,17 +4,10 @@ const {query_game_state} = require('./game.js');
 
 const createWindow = () => {
 	// Create the browser window.
-	const x = 1920 - 90;
-	const y = 60;
 	const mainWindow = new BrowserWindow({
-		width: 128,
-		height: 128,
-		x: x,
-		y: y,
-		frame: false,
+		width: 1200,
+		height: 600,
 		resizable: true,
-		transparent: true,
-		alwaysOnTop: true,
 		backgroundColor: '#00000000',
 		webPreferences: {
 			nodeIntegration: true,
@@ -29,7 +22,7 @@ const createWindow = () => {
 	Menu.setApplicationMenu(menu);
 
 	// Open the DevTools.
-	// mainWindow.webContents.openDevTools();
+	mainWindow.webContents.openDevTools();
 
 	setInterval(async () => {
 		try {

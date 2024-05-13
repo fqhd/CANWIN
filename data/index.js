@@ -41,5 +41,4 @@ async function get_batch(match_ids) {
 		}
 		console.log(`Processed ${idx} matches`);
 	}
-	
 })();
