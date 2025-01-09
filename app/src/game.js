@@ -103,7 +103,7 @@ function get_player_team_side(playerData, activePlayer) {
     let summonerName = activePlayer['summonerName'];
     summonerName = get_characters_before_hash(summonerName);
     for (let p of playerData) {
-        if (p['summonerName'] === summonerName) {
+        if (get_characters_before_hash(p['summonerName']) === summonerName) {
             return p['team'];
         }
     }

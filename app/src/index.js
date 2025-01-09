@@ -24,27 +24,28 @@ const createWindow = () => {
 	// Open the DevTools.
 	// mainWindow.webContents.openDevTools();
 
-	// setInterval(async () => {
-	// 	try {
-	// 		const [state, side] = await query_game_state();
-	// 		let response = await fetch('https://api.whoisfahd.dev/canwin', {
-	// 			method: 'GET',
-	// 			headers: {
-	// 				state: JSON.stringify(state)
-	// 			}
-	// 		});
-	// 		response = await response.text();
-	// 		response = parseFloat(response);
-	// 		if (side == 'CHAOS') {
-	// 			response = 1 - response;
-	// 		}
-	// 		response *= 100;
-	// 		response = parseInt(response);
-	// 		mainWindow.webContents.send('msg', response);
-	// 	} catch(e) {
-	// 		console.log(e);
-	// 	}
-	// }, 5000);
+	setInterval(async () => {
+		try {
+			const [state, side] = await query_game_state();
+			console.log(side);
+			// let response = await fetch('https://api.whoisfahd.dev/canwin', {
+			// 	method: 'GET',
+			// 	headers: {
+			// 		state: JSON.stringify(state)
+			// 	}
+			// });
+			// response = await response.text();
+			// response = parseFloat(response);
+			// if (side == 'CHAOS') {
+			// 	response = 1 - response;
+			// }
+			// response *= 100;
+			// response = parseInt(response);
+			// mainWindow.webContents.send('msg', response);
+		} catch(e) {
+			console.log(e);
+		}
+	}, 5000);
 };
 
 // This method will be called when Electron has finished
