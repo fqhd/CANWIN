@@ -4,12 +4,15 @@
 }
 
 body {
+    height: 100vh;
+    background-color: black;
     display: flex;
-    flex-flow: row nowrap;
+    flex-flow: column nowrap;
+    align-items: center;
+    justify-content: center;
 }
 
-.blue-team {
-    width: 20%;
-    height: 100%;
-    background-color: blue;
+p {
+    color: white;
+    font-size: 128px;
 }

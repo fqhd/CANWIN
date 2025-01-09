@@ -5,8 +5,8 @@ const {query_game_state} = require('./game.js');
 const createWindow = () => {
 	// Create the browser window.
 	const mainWindow = new BrowserWindow({
-		width: 1200,
-		height: 600,
+		width: 400,
+		height: 400,
 		resizable: true,
 		backgroundColor: '#00000000',
 		webPreferences: {
@@ -22,29 +22,29 @@ const createWindow = () => {
 	Menu.setApplicationMenu(menu);
 
 	// Open the DevTools.
-	mainWindow.webContents.openDevTools();
+	// mainWindow.webContents.openDevTools();
 
-	setInterval(async () => {
-		try {
-			const [state, side] = await query_game_state();
-			let response = await fetch('https://api.whoisfahd.dev/canwin', {
-				method: 'GET',
-				headers: {
-					state: JSON.stringify(state)
-				}
-			});
-			response = await response.text();
-			response = parseFloat(response);
-			if (side == 'CHAOS') {
-				response = 1 - response;
-			}
-			response *= 100;
-			response = parseInt(response);
-			mainWindow.webContents.send('msg', response);
-		} catch(e) {
-			console.log(e);
-		}
-	}, 5000);
+	// setInterval(async () => {
+	// 	try {
+	// 		const [state, side] = await query_game_state();
+	// 		let response = await fetch('https://api.whoisfahd.dev/canwin', {
+	// 			method: 'GET',
+	// 			headers: {
+	// 				state: JSON.stringify(state)
+	// 			}
+	// 		});
+	// 		response = await response.text();
+	// 		response = parseFloat(response);
+	// 		if (side == 'CHAOS') {
+	// 			response = 1 - response;
+	// 		}
+	// 		response *= 100;
+	// 		response = parseInt(response);
+	// 		mainWindow.webContents.send('msg', response);
+	// 	} catch(e) {
+	// 		console.log(e);
+	// 	}
+	// }, 5000);
 };
 
 // This method will be called when Electron has finished
